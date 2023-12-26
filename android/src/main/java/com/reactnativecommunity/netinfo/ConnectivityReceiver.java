@@ -7,6 +7,7 @@
 package com.reactnativecommunity.netinfo;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -165,13 +166,31 @@ public abstract class ConnectivityReceiver {
 
         // Add the details, if there are any
         String detailsInterface = requestedInterface != null ? requestedInterface : mConnectionType.label;
-        WritableMap details = createDetailsMap(detailsInterface);
-        if (isConnected) {
-            boolean isConnectionExpensive =
-                    getConnectivityManager() == null ? true : getConnectivityManager().isActiveNetworkMetered();
-            details.putBoolean("isConnectionExpensive", isConnectionExpensive);
+
+        SharedPreferences sp = getReactContext().getSharedPreferences("ble_mesh",
+                Context.MODE_PRIVATE);
+        boolean agree = sp.getBoolean("user_agree_authorize",false);
+
+        if(agree){
+            WritableMap details = createDetailsMap(detailsInterface);
+            if (isConnected) {
+                boolean isConnectionExpensive =
+                        getConnectivityManager() == null ? true : getConnectivityManager().isActiveNetworkMetered();
+                details.putBoolean("isConnectionExpensive", isConnectionExpensive);
+            }
+            event.putMap("details", details);
+        }else{
+            WritableMap details = Arguments.createMap();
+            event.putMap("details", details);
         }
-        event.putMap("details", details);
+
+        // WritableMap details = createDetailsMap(detailsInterface);
+        // if (isConnected) {
+        //     boolean isConnectionExpensive =
+        //             getConnectivityManager() == null ? true : getConnectivityManager().isActiveNetworkMetered();
+        //     details.putBoolean("isConnectionExpensive", isConnectionExpensive);
+        // }
+        // event.putMap("details", details);
 
         return event;
     }
